@@ -18,12 +18,7 @@ hedwig.cgi其实是一个链接文件，指向/htdocs/cgibin文件，接收到�
 
 - **序列图**
 
-```jsseq
-hedwig.cgi->xmldb: 1. read xml file "/var/tmp/temp.xml"
-Note right of xmldb: parse and save
-hedwig.cgi->xmldb: 2. execute php file ""/htdocs/webinc/fatlady.php"
-Note right of xmldb: parse and execute
-```
+![Alt text](https://wx4.sinaimg.cn/mw690/a750c5f9gy1fll2szvoldj20iq0a5aas.jpg)
 
 - **代码**
 ``` c
