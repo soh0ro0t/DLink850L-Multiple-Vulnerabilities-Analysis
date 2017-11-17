@@ -383,9 +383,37 @@ else if ($ACTION=="ACTIVATE")
 }
 ?>
 ```
-这部分代码根据用户请求的ACTION参数分成了两部分，如果ACTION=="SETCFG"，就从特定目录"/htdocs/phplib/setcfg/"下面查找$service.php文件并执行；如果ACTION=="ACTIVATE"，就将"service xxx restart"写入到全局shell文件_GLOBALS["SHELL"]，暂时无法准确获知这个文件具体路径，猜测是"/var/run/wand_activate_x.sh"。
+这部分代码根据用户请求的ACTION参数分成了两部分，如果ACTION=="SETCFG"，就从特定目录"/htdocs/phplib/setcfg/"下面查找$service.php文件并执行；
+先来查看"/htdocs/phplib/setcfg/DEVICE.TIME.php"内容，主要功能是注册用户请求的参数到xmldb数据库中。
 
-结合PoC得知，这个shell脚本会以某种方式被执行起来（至于怎么被执行起来的还不知道），那么“service xxx restart"也将被执行，比如DEVICE.TIME服务，最终导致"/etc/services/DEVICE.TIME.php"被执行（这里也是结合PoC进行猜测），因为无法得知路由器上执行“service xxx restart"到底映射到哪个文件。
+```php
+<?
+/* setcfg is used to move the validated session data to the configuration database.
+ * The variable, 'SETCFG_prefix',  will indicate the path of the session data. */
+include "/htdocs/phplib/trace.php";
+include "/htdocs/phplib/xnode.php";
+
+anchor($SETCFG_prefix."/device/time");
+set("/device/time/ntp/enable",  query("ntp/enable"));
+set("/runtime/device/ntp/state", "RUNNING");
+set("/device/time/ntp/period",  query("ntp/period"));
+set("/device/time/ntp/server",  query("ntp/server"));
+set("/device/time/timezone",    query("timezone"));
+set("/device/time/dst",                 query("dst"));
+set("/device/time/dstmanual",   query("dstmanual"));
+set("/device/time/dstoffset",   query("dstoffset"));
+set("/device/time/time",        query("time"));
+set("/device/time/date",        query("date"));
+/* ipv6 */
+set("/device/time/ntp6/enable", query("ntp6/enable"));
+set("/runtime/device/ntp6/state", "RUNNING");
+set("/device/time/ntp6/period", query("ntp6/period"));
+?>
+
+```
+如果ACTION=="ACTIVATE"，就将"service xxx restart"写入到全局shell文件_GLOBALS["SHELL"]，暂时无法准确获知这个文件具体路径，猜测是"/var/run/wand_activate_x.sh"。
+
+然后结合PoC得知，这个shell脚本会以某种方式被执行起来（至于怎么被执行起来的还不知道），那么“service xxx restart"也将被执行，比如DEVICE.TIME服务，最终导致"/etc/services/DEVICE.TIME.php"被执行（这里也是结合PoC进行猜测），因为无法得知路由器上执行“service xxx restart"到底映射到哪个文件。
 
 我们查看"/etc/services/DEVICE.TIME.php"文件内容，vim /etc/services/DEVICE.TIME.php：
 ```php
