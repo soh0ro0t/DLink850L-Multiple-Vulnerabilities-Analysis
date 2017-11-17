@@ -220,3 +220,39 @@ echo "</hedwig>\n";
 ?>
 
 ```
+这个文件使用了数据和代码混合的格式，显然是http response数据，只不过将ephp的代码执行结果作为了response data，代码含义是处理攻击者请求的xml树，提取出service字段，最后拼接成"/htdocs/phplib/fatlady/".$service.".php"文件将其执行。
+>/htdocs/phplib/fatlady/../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml.php
+
+其实就是
+>/htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml.php
+
+最后查看这个文件内容，vim htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml.php
+```php
+<module>
+        <service><?=$GETCFG_SVC?></service>
+        <device>
+<?
+echo "\t\t<gw_name>".query("/device/gw_name")."</gw_name>\n";
+?>
+                <account>
+<?
+$cnt = query("/device/account/count");
+if ($cnt=="") $cnt=0;
+echo "\t\t\t<seqno>".query("/device/account/seqno")."</seqno>\n";
+echo "\t\t\t<max>".query("/device/account/max")."</max>\n";
+echo "\t\t\t<count>".$cnt."</count>\n";
+foreach("/device/account/entry")
+{
+        if ($InDeX > $cnt) break;
+        echo "\t\t\t<entry>\n";
+        echo "\t\t\t\t<uid>".           get("x","uid"). "</uid>\n";
+        echo "\t\t\t\t<name>".          get("x","name").        "</name>\n";
+        echo "\t\t\t\t<usrid>".         get("x","usrid").       "</usrid>\n";
+        echo "\t\t\t\t<password>".      get("x","password")."</password>\n";
+        echo "\t\t\t\t<group>".         get("x", "group").      "</group>\n";
+        echo "\t\t\t\t<description>".get("x","description")."</description>\n";
+        echo "\t\t\t</entry>\n";
+}
+... ...
+```
+代码含义很清楚，就是获取管理账户和密码。
