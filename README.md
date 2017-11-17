@@ -445,6 +445,14 @@ if ($enable==1 && $enablev6==1)
 使用wireshark抓取数据流：
 ![...](https://wx1.sinaimg.cn/mw690/a750c5f9gy1fll7rb6ccyj20w80ij0un.jpg)
 
+telnet 192.168.0.1 23090
+>Trying 192.168.0.1...
+Connected to 192.168.0.1.
+Escape character is '^]'.
+Mon Jan  3 01:22:32 CST 2000
+Connection closed by foreign host.
+
+
 #### 总结
 :question:从这个漏洞学习到什么技巧？
 
