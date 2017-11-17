@@ -169,3 +169,54 @@ if not admin_pasw:
 ```
 使用wireshark抓包查看数据流：
 ![...](https://wx1.sinaimg.cn/mw690/a750c5f9gy1fll33cbu3uj20iz0ne40e.jpg)
+
+hedwigcgi_main只是处理攻击者请求的中转站，并没有实际处理xml file的数据，真正处理的程序是xmldb server，这个程序是dlink 850L路由器的核心组件，是用于设置和获取各种路由参数的数据库服务，它既能解析基本的xml文件，还实现了类似php解析器的功能来解析和执行自定义的php文件，固件中众多后缀为php的文件都是伪php文件，用真实的phpcgi是无法执行起来的，只有xmldb才能解析和执行，这个结论是通过逆行分析xmldb文件得到的，具体的数据信息就不粘贴了，读者自行查看。
+
+1. xmldb 先读取了"../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml"，并将其加载到全局数据库中。
+2. xmdb 调用fatlady.php处理攻击者请求的xml数据。
+
+接下来查看fatlady.php文件内容，vim htdocs/webinc/fatlady.php：
+```php
+HTTP/1.1 200 OK
+Content-Type: text/xml
+
+<?
+include "/htdocs/phplib/trace.php";
+
+/* get modules that send from hedwig */
+/* call $target to do error checking, 
+ * and it will modify and return the variables, '$FATLADY_XXXX'. */
+$FATLADY_result = "OK";
+$FATLADY_node   = "";
+$FATLADY_message= "No modules for Hedwig";      /* this should not happen */
+
+//TRACE_debug("FATLADY dump ====================\n".dump(0, "/runtime/session"));
+
+foreach ($prefix."/postxml/module")
+{
+        del("valid");
+        if (query("FATLADY")=="ignore") continue;
+        $service = query("service");
+        if ($service == "") continue;
+        TRACE_debug("FATLADY: got service [".$service."]");
+        $target = "/htdocs/phplib/fatlady/".$service.".php";
+        $FATLADY_prefix = $prefix."/postxml/module:".$InDeX;
+        $FATLADY_base   = $prefix."/postxml";
+        if (isfile($target)==1) dophp("load", $target);
+        else
+        {
+                TRACE_debug("FATLADY: no file - ".$target);
+                $FATLADY_result = "FAILED";
+                $FATLADY_message = "No implementation for ".$service;
+        }
+        if ($FATLADY_result!="OK") break;
+}
+echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+echo "<hedwig>\n";
+echo "\t<result>".      $FATLADY_result.        "</result>\n";
+echo "\t<node>".        $FATLADY_node.          "</node>\n";
+echo "\t<message>".     $FATLADY_message.       "</message>\n";
+echo "</hedwig>\n";
+?>
+
+```
