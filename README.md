@@ -6,7 +6,7 @@
 - **LAN的root远程命令执行**
 
 ## 0x01 漏洞分析
->**WAN和LAN远程代码执行**
+:one: **WAN和LAN远程代码执行**
 
 基于WAN和LAN的远程代码执行漏洞是组合拳漏洞，包括一个（未授权敏感信息泄漏）和另一个命令注入漏洞，（未授权敏感信息泄漏）用于获取web管理账户和密码，创建授权用户凭证（cookie）。命令注入漏洞是利用ntp server字符串未被检查过滤，向该参数注入恶意命令最终被路由器执行。
 
@@ -23,12 +23,6 @@ hedwig.cgi->xmldb: 1. read xml file "/var/tmp/temp.xml"
 Note right of xmldb: parse and save
 hedwig.cgi->xmldb: 2. execute php file ""/htdocs/webinc/fatlady.php"
 Note right of xmldb: parse and execute
-```
-
-```sequence
-Alice->Bob: Hello Bob, how are you?
-Note right of Bob: Bob thinks
-Bob-->Alice: I am good thanks!
 ```
 
 - **代码**
