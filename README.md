@@ -447,13 +447,9 @@ if ($enable==1 && $enablev6==1)
 
 telnet 192.168.0.1 23090
 >Trying 192.168.0.1...
-
 Connected to 192.168.0.1.
-
 Escape character is '^]'.
-
 Mon Jan  3 01:22:32 CST 2000
-
 Connection closed by foreign host.
 
 
