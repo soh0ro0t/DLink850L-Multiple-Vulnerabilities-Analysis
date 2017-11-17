@@ -265,7 +265,7 @@ if not admin_pasw:
 
 hedwig.cgi设计之初就是为所有用户（授权用户和非授权用户）提供数据格式检查的功能，比如非授权用户想修改web管理的账户密码，那首先应该将账户密码的数据格式发送给hedwig.cgi进行有效性检查，如果检查通过则必须作为授权用户身份发送这部分数据给其他cgi更新这部分数据才行。
 
-hedwig.cgi只是将我们请求的server字段提取出来作为php文件名，从特定目录“/htdocs/phplib/fatlady/”找到这个文件并执行，功能是检查我们请求的数据格式。然后攻击者别出心裁，将server字段设置为相对路径名称，而hedwig.cgi并没有检查server参数是否包含相对路径，于是造成了其他目录下的php文件被执行起来了，比如PoC中设置的相对路径，将“/htdocs/phplib/fatlady/”切换到“/htdocs/webinc/getcfg”目录下面去执行某个php文件，功能也从数据检查变成了数据获取，最终导致了敏感信息泄漏。
+hedwig.cgi只是将我们请求的service字段提取出来作为php文件名，从特定目录“/htdocs/phplib/fatlady/”找到这个文件并执行，功能是检查我们请求的数据格式。然后攻击者别出心裁，将server字段设置为相对路径名称，而hedwig.cgi并没有检查service参数是否包含相对路径，于是造成了其他目录下的php文件被执行起来了，比如PoC中设置的相对路径，将“/htdocs/phplib/fatlady/”切换到“/htdocs/webinc/getcfg”目录下面去执行某个php文件，功能也从数据检查变成了数据获取，最终导致了敏感信息泄漏。
 
 :question:从漏洞分析过程我收获到什么
 
