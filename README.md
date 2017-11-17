@@ -129,3 +129,5 @@ void hedwigcgi_main(...)
 }
 ```
 对处理流程清晰化之后回归漏洞，PoC公布的攻击代码中显示，攻击者发送了一个相对路径的xml文件（../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml）请求到hedwig.cgi，然后从响应的数据中就包含web管理账户和密码。
+使用wireshark抓包查看数据流：
+![...](https://wx1.sinaimg.cn/mw690/a750c5f9gy1fll33cbu3uj20iz0ne40e.jpg)
