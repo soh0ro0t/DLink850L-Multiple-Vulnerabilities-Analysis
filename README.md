@@ -18,11 +18,17 @@ hedwig.cgi其实是一个链接文件，指向/htdocs/cgibin文件，接收到�
 
 - **序列图**
 
-```sequence
+``` sequence
 hedwig.cgi->xmldb: 1. read xml file "/var/tmp/temp.xml"
 Note right of xmldb: parse and save
 hedwig.cgi->xmldb: 2. execute php file ""/htdocs/webinc/fatlady.php"
 Note right of xmldb: parse and execute
+```
+
+```sequence
+Alice->Bob: Hello Bob, how are you?
+Note right of Bob: Bob thinks
+Bob-->Alice: I am good thanks!
 ```
 
 - **代码**
