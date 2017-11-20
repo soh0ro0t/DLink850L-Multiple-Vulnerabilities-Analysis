@@ -133,7 +133,7 @@ void hedwigcgi_main(...)
 hedwigcgi_main只是处理攻击者请求的中转站，并没有实际处理xml file的数据，真正处理的程序是xmldb server，这个程序是dlink 850L路由器的核心组件，是用于设置和获取各种路由参数的数据库服务，它既能解析基本的xml文件，还实现了类似php解析器的功能来解析和执行自定义的php文件，固件中众多后缀为php的文件都是伪php文件，用真实的phpcgi是无法执行起来的，只有xmldb才能解析和执行，这个结论是通过逆行分析xmldb文件得到的，具体的数据信息就不粘贴了，读者自行查看。
 
 1. xmldb 先读取了"../../../htdocs/webinc/getcfg/DEVICE.ACCOUNT.xml"，并将其加载到全局数据库中。
-2. xmdb 调用fatlady.php处理攻击者请求的xml数据。
+2. xmldb 调用fatlady.php处理攻击者请求的xml数据。
 
 接下来查看fatlady.php文件内容，vim htdocs/webinc/fatlady.php：
 ```php
